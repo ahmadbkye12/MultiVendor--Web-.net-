@@ -1,4 +1,5 @@
 using Domain.Common;
+using Domain.Enums;
 
 namespace Domain.Entities;
 
@@ -15,6 +16,9 @@ public class Product : BaseAuditableEntity
     public string? Description { get; set; }
     public decimal BasePrice { get; set; }
     public bool IsPublished { get; set; }
+
+    /// <summary>Lifecycle gate controlled only by Admin (vendors submit Pending).</summary>
+    public ProductApprovalStatus ApprovalStatus { get; set; } = ProductApprovalStatus.Pending;
 
     public ICollection<ProductImage> Images { get; set; } = new List<ProductImage>();
     public ICollection<ProductVariant> Variants { get; set; } = new List<ProductVariant>();

@@ -12,6 +12,11 @@ public class VendorStore : BaseAuditableEntity
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
 
+    public string? LogoUrl { get; set; }
+    public string? BannerUrl { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? ContactPhone { get; set; }
+
     public ICollection<Product> Products { get; set; } = new List<Product>();
     public ICollection<Coupon> Coupons { get; set; } = new List<Coupon>();
 }

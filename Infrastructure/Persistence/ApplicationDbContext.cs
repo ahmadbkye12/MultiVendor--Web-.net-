@@ -36,6 +36,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         builder.ConfigureIdentityTables();
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        builder.ApplySoftDeleteFilters();
 
         foreach (var entityType in builder.Model.GetEntityTypes())
         {
@@ -55,6 +56,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             switch (entry.State)
             {
+                case EntityState.Deleted:
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                    entry.Entity.UpdatedAtUtc = DateTime.UtcNow;
+                    break;
                 case EntityState.Added:
                     entry.Entity.CreatedAtUtc = DateTime.UtcNow;
                     if (entry.Entity.Id == Guid.Empty)

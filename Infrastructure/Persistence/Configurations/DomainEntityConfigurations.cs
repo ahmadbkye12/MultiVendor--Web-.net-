@@ -10,7 +10,7 @@ public sealed class VendorConfiguration : IEntityTypeConfiguration<Vendor>
     public void Configure(EntityTypeBuilder<Vendor> builder)
     {
         builder.ToTable("Vendors");
-        builder.HasIndex(v => v.OwnerUserId).IsUnique();
+        builder.HasIndex(v => v.OwnerUserId).IsUnique().HasFilter("[IsDeleted] = 0");
         builder.Property(v => v.BusinessName).HasMaxLength(256);
         builder.Property(v => v.TaxNumber).HasMaxLength(64);
 
@@ -28,7 +28,11 @@ public sealed class VendorStoreConfiguration : IEntityTypeConfiguration<VendorSt
         builder.ToTable("VendorStores");
         builder.Property(s => s.Name).HasMaxLength(256);
         builder.Property(s => s.Slug).HasMaxLength(256);
-        builder.HasIndex(s => new { s.VendorId, s.Slug }).IsUnique();
+        builder.Property(s => s.LogoUrl).HasMaxLength(2048);
+        builder.Property(s => s.BannerUrl).HasMaxLength(2048);
+        builder.Property(s => s.ContactEmail).HasMaxLength(256);
+        builder.Property(s => s.ContactPhone).HasMaxLength(64);
+        builder.HasIndex(s => new { s.VendorId, s.Slug }).IsUnique().HasFilter("[IsDeleted] = 0 AND [Slug] IS NOT NULL");
 
         builder.HasOne(s => s.Vendor)
             .WithMany(v => v.Stores)
@@ -44,7 +48,7 @@ public sealed class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.ToTable("Categories");
         builder.Property(c => c.Name).HasMaxLength(256);
         builder.Property(c => c.Slug).HasMaxLength(256);
-        builder.HasIndex(c => c.Slug).IsUnique();
+        builder.HasIndex(c => c.Slug).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(c => c.Parent)
             .WithMany(c => c.Children)
@@ -60,7 +64,7 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.ToTable("Products");
         builder.Property(p => p.Name).HasMaxLength(512);
         builder.Property(p => p.Slug).HasMaxLength(512);
-        builder.HasIndex(p => new { p.VendorStoreId, p.Slug }).IsUnique();
+        builder.HasIndex(p => new { p.VendorStoreId, p.Slug }).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(p => p.VendorStore)
             .WithMany(s => s.Products)
@@ -71,6 +75,8 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithMany(c => c.Products)
             .HasForeignKey(p => p.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(p => p.ApprovalStatus).HasConversion<int>();
     }
 }
 
@@ -95,7 +101,7 @@ public sealed class ProductVariantConfiguration : IEntityTypeConfiguration<Produ
         builder.ToTable("ProductVariants");
         builder.Property(v => v.Sku).HasMaxLength(128);
         builder.Property(v => v.Name).HasMaxLength(256);
-        builder.HasIndex(v => v.Sku).IsUnique();
+        builder.HasIndex(v => v.Sku).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(v => v.Product)
             .WithMany(p => p.Variants)
@@ -109,7 +115,7 @@ public sealed class CartConfiguration : IEntityTypeConfiguration<Cart>
     public void Configure(EntityTypeBuilder<Cart> builder)
     {
         builder.ToTable("Carts");
-        builder.HasIndex(c => c.CustomerUserId).IsUnique();
+        builder.HasIndex(c => c.CustomerUserId).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne<ApplicationUser>()
             .WithMany()
@@ -123,7 +129,7 @@ public sealed class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
     public void Configure(EntityTypeBuilder<CartItem> builder)
     {
         builder.ToTable("CartItems");
-        builder.HasIndex(i => new { i.CartId, i.ProductVariantId }).IsUnique();
+        builder.HasIndex(i => new { i.CartId, i.ProductVariantId }).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(i => i.Cart)
             .WithMany(c => c.Items)
@@ -182,6 +188,13 @@ public sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .WithMany(v => v.OrderItems)
             .HasForeignKey(i => i.ProductVariantId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(i => i.VendorStore)
+            .WithMany()
+            .HasForeignKey(i => i.VendorStoreId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Property(i => i.VendorFulfillmentStatus).HasConversion<int>();
     }
 }
 
@@ -206,7 +219,7 @@ public sealed class ReviewConfiguration : IEntityTypeConfiguration<Review>
     {
         builder.ToTable("Reviews");
         builder.Property(r => r.Comment).HasMaxLength(4000);
-        builder.HasIndex(r => new { r.ProductId, r.CustomerUserId }).IsUnique();
+        builder.HasIndex(r => new { r.ProductId, r.CustomerUserId }).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(r => r.Product)
             .WithMany(p => p.Reviews)
@@ -225,7 +238,7 @@ public sealed class WishlistItemConfiguration : IEntityTypeConfiguration<Wishlis
     public void Configure(EntityTypeBuilder<WishlistItem> builder)
     {
         builder.ToTable("Wishlists");
-        builder.HasIndex(w => new { w.CustomerUserId, w.ProductId }).IsUnique();
+        builder.HasIndex(w => new { w.CustomerUserId, w.ProductId }).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(w => w.Product)
             .WithMany(p => p.WishlistItems)
@@ -245,7 +258,7 @@ public sealed class CouponConfiguration : IEntityTypeConfiguration<Coupon>
     {
         builder.ToTable("Coupons");
         builder.Property(c => c.Code).HasMaxLength(64);
-        builder.HasIndex(c => c.Code).IsUnique();
+        builder.HasIndex(c => c.Code).IsUnique().HasFilter("[IsDeleted] = 0");
 
         builder.HasOne(c => c.VendorStore)
             .WithMany(s => s.Coupons)
@@ -287,6 +300,11 @@ public sealed class ShipmentConfiguration : IEntityTypeConfiguration<Shipment>
             .WithMany(o => o.Shipments)
             .HasForeignKey(s => s.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(s => s.AssignedDeliveryUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 
@@ -328,7 +346,7 @@ public sealed class RefreshTokenConfiguration : IEntityTypeConfiguration<Refresh
         builder.ToTable("RefreshTokens");
         builder.Property(r => r.TokenHash).HasMaxLength(512);
         builder.Property(r => r.ReplacedByTokenHash).HasMaxLength(512);
-        builder.HasIndex(r => new { r.UserId, r.TokenHash });
+        builder.HasIndex(r => new { r.UserId, r.TokenHash }).HasFilter("[IsDeleted] = 0");
 
         builder.HasOne<ApplicationUser>()
             .WithMany()

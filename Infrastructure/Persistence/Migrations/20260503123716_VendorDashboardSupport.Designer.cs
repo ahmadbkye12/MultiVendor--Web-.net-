@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260503110752_InitialDomainSchema")]
-    partial class InitialDomainSchema
+    [Migration("20260503123716_VendorDashboardSupport")]
+    partial class VendorDashboardSupport
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,6 +45,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("Label")
@@ -112,6 +115,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("NewValues")
                         .HasColumnType("nvarchar(max)");
 
@@ -144,13 +150,17 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("UpdatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerUserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Carts", (string)null);
                 });
@@ -166,6 +176,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("ProductVariantId")
                         .HasColumnType("uniqueidentifier");
@@ -185,7 +198,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductVariantId");
 
                     b.HasIndex("CartId", "ProductVariantId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("CartItems", (string)null);
                 });
@@ -201,6 +215,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -223,7 +240,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("ParentCategoryId");
 
                     b.HasIndex("Slug")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Categories", (string)null);
                 });
@@ -255,6 +273,9 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("MaxUses")
                         .HasColumnType("int");
 
@@ -270,7 +291,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Code")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.HasIndex("VendorStoreId");
 
@@ -290,6 +312,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRead")
                         .HasColumnType("bit");
@@ -339,6 +364,9 @@ namespace Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<Guid?>("ShippingAddressId")
                         .HasColumnType("uniqueidentifier");
 
@@ -383,8 +411,23 @@ namespace Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<decimal>("CommissionAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CommissionPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LineTotal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
@@ -411,11 +454,23 @@ namespace Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<int>("VendorFulfillmentStatus")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("VendorNetAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("VendorStoreId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
                     b.HasIndex("ProductVariantId");
+
+                    b.HasIndex("VendorStoreId");
 
                     b.ToTable("OrderItems", (string)null);
                 });
@@ -436,6 +491,9 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<string>("ExternalPaymentId")
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
@@ -463,6 +521,9 @@ namespace Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("BasePrice")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
@@ -475,6 +536,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");
@@ -500,7 +564,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("VendorStoreId", "Slug")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Products", (string)null);
                 });
@@ -513,6 +578,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
@@ -544,6 +612,9 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -571,7 +642,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId");
 
                     b.HasIndex("Sku")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("ProductVariants", (string)null);
                 });
@@ -587,6 +659,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("ExpiresAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ReplacedByTokenHash")
                         .HasMaxLength(512)
@@ -609,7 +684,8 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "TokenHash");
+                    b.HasIndex("UserId", "TokenHash")
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("RefreshTokens", (string)null);
                 });
@@ -631,6 +707,9 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
@@ -645,7 +724,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("CustomerUserId");
 
                     b.HasIndex("ProductId", "CustomerUserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Reviews", (string)null);
                 });
@@ -656,6 +736,9 @@ namespace Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AssignedDeliveryUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Carrier")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
@@ -665,6 +748,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("DeliveredAtUtc")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("OrderId")
                         .HasColumnType("uniqueidentifier");
@@ -683,6 +769,8 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssignedDeliveryUserId");
 
                     b.HasIndex("OrderId");
 
@@ -703,7 +791,14 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("DefaultCommissionPercent")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<string>("OwnerUserId")
@@ -720,7 +815,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerUserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Vendors", (string)null);
                 });
@@ -731,6 +827,18 @@ namespace Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("BannerUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
@@ -739,6 +847,13 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -759,7 +874,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("VendorId", "Slug")
                         .IsUnique()
-                        .HasFilter("[Slug] IS NOT NULL");
+                        .HasFilter("[IsDeleted] = 0 AND [Slug] IS NOT NULL");
 
                     b.ToTable("VendorStores", (string)null);
                 });
@@ -777,6 +892,9 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<Guid>("ProductId")
                         .HasColumnType("uniqueidentifier");
 
@@ -788,7 +906,8 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductId");
 
                     b.HasIndex("CustomerUserId", "ProductId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Wishlists", (string)null);
                 });
@@ -1117,9 +1236,17 @@ namespace Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Domain.Entities.VendorStore", "VendorStore")
+                        .WithMany()
+                        .HasForeignKey("VendorStoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Order");
 
                     b.Navigation("ProductVariant");
+
+                    b.Navigation("VendorStore");
                 });
 
             modelBuilder.Entity("Domain.Entities.Payment", b =>
@@ -1202,6 +1329,11 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entities.Shipment", b =>
                 {
+                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("AssignedDeliveryUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Domain.Entities.Order", "Order")
                         .WithMany("Shipments")
                         .HasForeignKey("OrderId")

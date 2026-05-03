@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialDomainSchema : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,7 +21,8 @@ namespace Infrastructure.Persistence.Migrations
                     ParentCategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     DisplayOrder = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -112,7 +113,8 @@ namespace Infrastructure.Persistence.Migrations
                     Phone = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
                     IsDefault = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -138,7 +140,8 @@ namespace Infrastructure.Persistence.Migrations
                     NewValues = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IpAddress = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -158,7 +161,8 @@ namespace Infrastructure.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CustomerUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -182,7 +186,8 @@ namespace Infrastructure.Persistence.Migrations
                     Type = table.Column<int>(type: "int", nullable: false),
                     IsRead = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -206,7 +211,8 @@ namespace Infrastructure.Persistence.Migrations
                     RevokedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     ReplacedByTokenHash = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -314,7 +320,8 @@ namespace Infrastructure.Persistence.Migrations
                     TaxNumber = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     IsApproved = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -338,7 +345,8 @@ namespace Infrastructure.Persistence.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -365,7 +373,8 @@ namespace Infrastructure.Persistence.Migrations
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     VendorStoreId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -391,7 +400,8 @@ namespace Infrastructure.Persistence.Migrations
                     BasePrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     IsPublished = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -426,7 +436,8 @@ namespace Infrastructure.Persistence.Migrations
                     Total = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CouponId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -466,7 +477,8 @@ namespace Infrastructure.Persistence.Migrations
                     Url = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -490,7 +502,8 @@ namespace Infrastructure.Persistence.Migrations
                     Price = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     StockQuantity = table.Column<int>(type: "int", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -513,7 +526,8 @@ namespace Infrastructure.Persistence.Migrations
                     Rating = table.Column<int>(type: "int", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -540,7 +554,8 @@ namespace Infrastructure.Persistence.Migrations
                     CustomerUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -570,7 +585,8 @@ namespace Infrastructure.Persistence.Migrations
                     Provider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     ExternalPaymentId = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -589,13 +605,15 @@ namespace Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OrderId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    AssignedDeliveryUserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Carrier = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: true),
                     TrackingNumber = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     ShippedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DeliveredAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -606,6 +624,12 @@ namespace Infrastructure.Persistence.Migrations
                         principalTable: "Orders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Shipments_Users_AssignedDeliveryUserId",
+                        column: x => x.AssignedDeliveryUserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -618,7 +642,8 @@ namespace Infrastructure.Persistence.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -649,7 +674,8 @@ namespace Infrastructure.Persistence.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     UnitPrice = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    UpdatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -682,7 +708,8 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_CartItems_CartId_ProductVariantId",
                 table: "CartItems",
                 columns: new[] { "CartId", "ProductVariantId" },
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CartItems_ProductVariantId",
@@ -693,7 +720,8 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_Carts_CustomerUserId",
                 table: "Carts",
                 column: "CustomerUserId",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_ParentCategoryId",
@@ -704,13 +732,15 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_Categories_Slug",
                 table: "Categories",
                 column: "Slug",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Coupons_Code",
                 table: "Coupons",
                 column: "Code",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Coupons_VendorStoreId",
@@ -771,7 +801,8 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_Products_VendorStoreId_Slug",
                 table: "Products",
                 columns: new[] { "VendorStoreId", "Slug" },
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductVariants_ProductId",
@@ -782,12 +813,14 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_ProductVariants_Sku",
                 table: "ProductVariants",
                 column: "Sku",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId_TokenHash",
                 table: "RefreshTokens",
-                columns: new[] { "UserId", "TokenHash" });
+                columns: new[] { "UserId", "TokenHash" },
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reviews_CustomerUserId",
@@ -798,7 +831,8 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_Reviews_ProductId_CustomerUserId",
                 table: "Reviews",
                 columns: new[] { "ProductId", "CustomerUserId" },
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_RoleClaims_RoleId",
@@ -811,6 +845,11 @@ namespace Infrastructure.Persistence.Migrations
                 column: "NormalizedName",
                 unique: true,
                 filter: "[NormalizedName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Shipments_AssignedDeliveryUserId",
+                table: "Shipments",
+                column: "AssignedDeliveryUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Shipments_OrderId",
@@ -848,20 +887,22 @@ namespace Infrastructure.Persistence.Migrations
                 name: "IX_Vendors_OwnerUserId",
                 table: "Vendors",
                 column: "OwnerUserId",
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VendorStores_VendorId_Slug",
                 table: "VendorStores",
                 columns: new[] { "VendorId", "Slug" },
                 unique: true,
-                filter: "[Slug] IS NOT NULL");
+                filter: "[IsDeleted] = 0 AND [Slug] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wishlists_CustomerUserId_ProductId",
                 table: "Wishlists",
                 columns: new[] { "CustomerUserId", "ProductId" },
-                unique: true);
+                unique: true,
+                filter: "[IsDeleted] = 0");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Wishlists_ProductId",

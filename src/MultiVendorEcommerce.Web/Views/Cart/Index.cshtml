@@ -1,0 +1,87 @@
+@model Application.Cart.Queries.GetMyCart.CartDto
+@{
+    ViewData["Title"] = "Your Cart";
+}
+
+<h2 class="mb-3"><i class="bi bi-cart3 me-2"></i>Your Cart</h2>
+
+@if (!Model.Items.Any())
+{
+    <div class="card mv-card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-cart-x display-3 d-block mb-3 text-muted"></i>
+            <h5>Your cart is empty</h5>
+            <p class="text-muted">Browse products and add what you like.</p>
+            <a asp-controller="Products" asp-action="Index" class="btn btn-primary mt-2"><i class="bi bi-grid-3x3-gap me-1"></i>Browse products</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            @foreach (var i in Model.Items)
+            {
+                <div class="mv-cart-item mb-3">
+                    @if (!string.IsNullOrEmpty(i.ImageUrl))
+                    { <img src="@i.ImageUrl" class="rounded" style="width:80px;height:80px;object-fit:cover" /> }
+                    else
+                    { <div class="rounded bg-body-secondary text-center" style="width:80px;height:80px;line-height:80px"><i class="bi bi-image"></i></div> }
+
+                    <div>
+                        <a asp-controller="Products" asp-action="Details" asp-route-slug="@i.ProductSlug" class="text-decoration-none text-reset">
+                            <strong>@i.ProductName</strong>
+                        </a>
+                        <div class="small text-muted"><i class="bi bi-shop me-1"></i>@i.StoreName</div>
+                        <div class="small text-muted">
+                            <code>@i.VariantSku</code>
+                            @if (!string.IsNullOrEmpty(i.VariantColor)) { <span class="ms-1">· @i.VariantColor</span> }
+                            @if (!string.IsNullOrEmpty(i.VariantSize)) { <span class="ms-1">· @i.VariantSize</span> }
+                        </div>
+                        <div class="d-md-none mv-price mt-2">@i.LineTotal.ToString("0.00")</div>
+                    </div>
+
+                    <div class="d-none d-md-block text-end">
+                        <div class="small text-muted">Unit</div>
+                        <div>@i.UnitPrice.ToString("0.00")</div>
+                    </div>
+
+                    <form asp-action="Update" method="post" class="d-flex gap-1">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@i.Id" />
+                        <input type="number" name="quantity" value="@i.Quantity" min="1" max="@i.StockAvailable" class="form-control form-control-sm" style="width:70px" />
+                        <button class="btn btn-sm btn-outline-secondary" title="Update"><i class="bi bi-arrow-clockwise"></i></button>
+                    </form>
+
+                    <div class="d-none d-md-flex flex-column align-items-end gap-2">
+                        <span class="mv-price">@i.LineTotal.ToString("0.00")</span>
+                        <form asp-action="Remove" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@i.Id" />
+                            <button class="btn btn-sm btn-outline-danger" title="Remove"><i class="bi bi-x-lg"></i></button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mv-card" style="position:sticky;top:1rem;">
+                <div class="card-header bg-white border-0 pt-3"><h5 class="mb-0">Order summary</h5></div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between"><span class="text-muted">Items</span><strong>@Model.ItemCount</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-muted">Subtotal</span><strong>@Model.Subtotal.ToString("0.00")</strong></div>
+                    <div class="d-flex justify-content-between mt-2"><span class="text-muted">Shipping</span><span class="text-success small">Calculated at checkout</span></div>
+                    <hr />
+                    <div class="d-flex justify-content-between fs-5"><span>Total</span><span class="mv-price" style="font-size:1.4rem;">@Model.Subtotal.ToString("0.00")</span></div>
+                </div>
+                <div class="card-footer bg-white border-0 pb-3">
+                    <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary w-100">
+                        <i class="bi bi-credit-card me-1"></i>Proceed to checkout
+                    </a>
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-link w-100 mt-2 small">Continue shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

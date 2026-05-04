@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MultiVendorEcommerce.Application/MultiVendorEcommerce.Application.csproj" />
+    <Project Path="src/MultiVendorEcommerce.Domain/MultiVendorEcommerce.Domain.csproj" />
+    <Project Path="src/MultiVendorEcommerce.Infrastructure/MultiVendorEcommerce.Infrastructure.csproj" />
+    <Project Path="src/MultiVendorEcommerce.Web/MultiVendorEcommerce.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MultiVendorEcommerce.Application.UnitTests/MultiVendorEcommerce.Application.UnitTests.csproj" />
+  </Folder>
+</Solution>

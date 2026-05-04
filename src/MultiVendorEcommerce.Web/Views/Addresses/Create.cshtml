@@ -1,0 +1,31 @@
+@model Web.Models.ViewModels.Addresses.AddressFormViewModel
+@{
+    ViewData["Title"] = "New address";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Addresses</a></li>
+        <li class="breadcrumb-item active">New</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card mv-card">
+            <div class="card-header bg-white border-0 pt-3 d-flex align-items-center gap-2">
+                <div class="mv-cat-icon" style="width:40px;height:40px;font-size:1.1rem;"><i class="bi bi-house-door"></i></div>
+                <h5 class="mb-0">Add a new address</h5>
+            </div>
+            <form asp-action="Create" method="post">
+                <div class="card-body"><partial name="_Form" model="Model" /></div>
+                <div class="card-footer bg-white border-0 pb-3 text-end">
+                    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    <button class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

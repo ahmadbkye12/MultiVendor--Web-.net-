@@ -1,0 +1,241 @@
+@using Domain.Enums
+@model Application.Orders.Queries.GetMyOrderById.MyOrderDetailDto
+@{
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="mb-0">@Model.OrderNumber</h2>
+        <small class="text-muted">Placed @(Model.PlacedAtUtc?.ToString("u") ?? "—")</small>
+    </div>
+    <div>
+        @switch (Model.Status)
+        {
+            case OrderStatus.Paid:           <span class="badge bg-info fs-6">Paid</span> break;
+            case OrderStatus.Processing:     <span class="badge bg-primary fs-6">Processing</span> break;
+            case OrderStatus.Shipped:        <span class="badge bg-warning text-dark fs-6">Shipped</span> break;
+            case OrderStatus.Delivered:      <span class="badge bg-success fs-6">Delivered</span> break;
+            case OrderStatus.Cancelled:      <span class="badge bg-danger fs-6">Cancelled</span> break;
+            default:                         <span class="badge bg-secondary fs-6">@Model.Status</span> break;
+        }
+    </div>
+</div>
+
+@{
+    var stepIndex = Model.Status switch
+    {
+        OrderStatus.PendingPayment => 0,
+        OrderStatus.Paid           => 1,
+        OrderStatus.Processing     => 2,
+        OrderStatus.Shipped        => 3,
+        OrderStatus.Delivered      => 4,
+        OrderStatus.Refunded       => 4,
+        OrderStatus.Cancelled      => -1,
+        _                          => 0
+    };
+    string CssFor(int i) =>
+        Model.Status == OrderStatus.Cancelled ? "step-cancelled" :
+        i < stepIndex   ? "step-done" :
+        i == stepIndex  ? "step-current" :
+                          "step-pending";
+    var steps = new[]
+    {
+        ("Placed",     "bi-bag-plus",       Model.PlacedAtUtc),
+        ("Paid",       "bi-credit-card",    Model.PaidAtUtc),
+        ("Processing", "bi-tools",          (DateTime?)null),
+        ("Shipped",    "bi-truck",          (DateTime?)null),
+        (Model.Status == OrderStatus.Refunded ? "Refunded" : "Delivered", "bi-check2-circle", Model.Status == OrderStatus.Refunded ? Model.RefundedAtUtc : null)
+    };
+}
+
+<style>
+.timeline-row { display:flex; align-items:flex-start; gap:0; margin: 8px 0 24px; }
+.timeline-step { flex:1; text-align:center; position:relative; padding-top:48px; }
+.timeline-step:not(:first-child)::before {
+  content:''; position:absolute; left:0; top:24px; height:3px; width:50%;
+  background:#dee2e6;
+}
+.timeline-step:not(:last-child)::after {
+  content:''; position:absolute; right:0; top:24px; height:3px; width:50%;
+  background:#dee2e6;
+}
+.timeline-step .dot {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:48px; height:48px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+  background:#e9ecef; color:#6c757d; border:3px solid #dee2e6;
+}
+.timeline-step.step-done .dot,
+.timeline-step.step-current .dot { background:#0d6efd; color:#fff; border-color:#0d6efd; }
+.timeline-step.step-done::before, .timeline-step.step-done::after,
+.timeline-step.step-current::before { background:#0d6efd; }
+.timeline-step.step-current .dot { box-shadow: 0 0 0 6px rgba(13,110,253,.15); }
+.timeline-step.step-cancelled .dot { background:#dc3545; color:#fff; border-color:#dc3545; }
+</style>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        @if (Model.Status == OrderStatus.Cancelled)
+        {
+            <div class="text-center py-2">
+                <i class="bi bi-x-circle-fill text-danger fs-1"></i>
+                <h5 class="mt-2 mb-0">Order cancelled</h5>
+                <small class="text-muted">@(Model.CancelledAtUtc?.ToString("u") ?? "")</small>
+            </div>
+        }
+        else
+        {
+            <div class="timeline-row">
+                @for (int i = 0; i < steps.Length; i++)
+                {
+                    var (label, icon, when) = steps[i];
+                    <div class="timeline-step @CssFor(i)">
+                        <div class="dot"><i class="bi @icon"></i></div>
+                        <div class="small fw-semibold">@label</div>
+                        @if (when.HasValue)
+                        { <div class="small text-muted">@when.Value.ToString("MMM d, HH:mm")</div> }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">Items</h5></div>
+            <div class="card-body p-0">
+                <table class="table mb-0 align-middle">
+                    <thead class="table-light"><tr><th>Product</th><th>Vendor</th><th class="text-center">Qty</th><th class="text-end">Unit</th><th class="text-end">Total</th><th class="text-center">Fulfillment</th></tr></thead>
+                    <tbody>
+                    @foreach (var i in Model.Items)
+                    {
+                        <tr>
+                            <td><strong>@i.ProductName</strong>@(string.IsNullOrEmpty(i.VariantName) ? "" : $" — {i.VariantName}")</td>
+                            <td>@i.StoreName</td>
+                            <td class="text-center">@i.Quantity</td>
+                            <td class="text-end">@i.UnitPrice.ToString("0.00")</td>
+                            <td class="text-end">@i.LineTotal.ToString("0.00")</td>
+                            <td class="text-center">
+                                @switch (i.VendorFulfillmentStatus)
+                                {
+                                    case VendorOrderItemStatus.PendingFulfillment: <span class="badge bg-secondary">Pending</span> break;
+                                    case VendorOrderItemStatus.Processing:         <span class="badge bg-primary">Processing</span> break;
+                                    case VendorOrderItemStatus.ReadyToShip:        <span class="badge bg-info">Ready</span> break;
+                                    case VendorOrderItemStatus.Shipped:            <span class="badge bg-warning text-dark">Shipped</span> break;
+                                    case VendorOrderItemStatus.Delivered:          <span class="badge bg-success">Delivered</span> break;
+                                    case VendorOrderItemStatus.Cancelled:          <span class="badge bg-danger">Cancelled</span> break;
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header"><h5 class="mb-0">Shipping address</h5></div>
+            <div class="card-body">
+                <p class="mb-1">@Model.ShippingFullName</p>
+                <p class="mb-1">@Model.ShippingLine1</p>
+                @if (!string.IsNullOrEmpty(Model.ShippingLine2)) { <p class="mb-1">@Model.ShippingLine2</p> }
+                <p class="mb-1">@Model.ShippingCity@(string.IsNullOrEmpty(Model.ShippingState) ? "" : $", {Model.ShippingState}") @Model.ShippingPostalCode</p>
+                <p class="mb-1">@Model.ShippingCountry</p>
+                @if (!string.IsNullOrEmpty(Model.ShippingPhone)) { <p class="mb-0 text-muted small"><i class="bi bi-telephone me-1"></i>@Model.ShippingPhone</p> }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header"><h5 class="mb-0">Summary</h5></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between"><span>Subtotal</span><span>@Model.Subtotal.ToString("0.00")</span></div>
+                <div class="d-flex justify-content-between"><span>Shipping</span><span>@Model.ShippingAmount.ToString("0.00")</span></div>
+                <div class="d-flex justify-content-between"><span>Tax</span><span>@Model.TaxAmount.ToString("0.00")</span></div>
+                @if (Model.DiscountAmount > 0)
+                { <div class="d-flex justify-content-between text-success"><span>Discount</span><span>−@Model.DiscountAmount.ToString("0.00")</span></div> }
+                <hr />
+                <div class="d-flex justify-content-between fs-5"><span>Total</span><strong class="text-primary">@Model.Total.ToString("0.00")</strong></div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-3">
+            <div class="card-header"><h5 class="mb-0">Payment</h5></div>
+            <div class="card-body">
+                <p class="mb-1">Method: <strong>@(Model.PaymentMethod ?? "—")</strong></p>
+                <p class="mb-0">Status:
+                    @switch (Model.PaymentStatus)
+                    {
+                        case PaymentStatus.Captured:   <span class="badge bg-success">Captured</span> break;
+                        case PaymentStatus.Pending:    <span class="badge bg-secondary">Pending</span> break;
+                        case PaymentStatus.Authorized: <span class="badge bg-info">Authorized</span> break;
+                        case PaymentStatus.Failed:     <span class="badge bg-danger">Failed</span> break;
+                        case PaymentStatus.Refunded:   <span class="badge bg-warning text-dark">Refunded</span> break;
+                        default: <span class="text-muted">—</span> break;
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    var canCancel = Model.Status != OrderStatus.Cancelled
+                    && Model.Status != OrderStatus.Delivered
+                    && Model.Status != OrderStatus.Refunded
+                    && Model.Items.All(i => (int)i.VendorFulfillmentStatus < (int)VendorOrderItemStatus.ReadyToShip);
+    var canRequestRefund = Model.Status == OrderStatus.Delivered && !Model.RefundRequestedAtUtc.HasValue;
+}
+
+@if (Model.RefundRequestedAtUtc.HasValue || Model.Status == OrderStatus.Refunded)
+{
+    var refundedDate = Model.RefundedAtUtc?.ToString("u") ?? "—";
+    var requestedDate = Model.RefundRequestedAtUtc?.ToString("u") ?? "—";
+    <div class="alert @(Model.Status == OrderStatus.Refunded ? "alert-success" : "alert-warning") mt-3" role="alert">
+        @if (Model.Status == OrderStatus.Refunded)
+        {
+            <span><i class="bi bi-check-circle me-1"></i><strong>Refunded</strong> on @refundedDate</span>
+        }
+        else
+        {
+            <span><i class="bi bi-hourglass-split me-1"></i><strong>Refund requested</strong> on @requestedDate</span>
+        }
+        @if (!string.IsNullOrEmpty(Model.RefundReason))
+        { <div class="small text-muted mt-1">Reason: @Model.RefundReason</div> }
+    </div>
+}
+
+@if (canRequestRefund)
+{
+    <div class="card shadow-sm mt-3">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-arrow-counterclockwise me-2"></i>Request a refund</h6></div>
+        <form asp-action="RequestRefund" asp-route-id="@Model.Id" method="post">
+            @Html.AntiForgeryToken()
+            <div class="card-body">
+                <textarea name="reason" class="form-control" rows="3" minlength="10" maxlength="2000"
+                          placeholder="Tell us why you'd like a refund (min 10 chars)" required></textarea>
+            </div>
+            <div class="card-footer text-end">
+                <button class="btn btn-outline-warning"><i class="bi bi-send me-1"></i>Submit refund request</button>
+            </div>
+        </form>
+    </div>
+}
+
+<div class="mt-4 d-flex justify-content-between">
+    <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left me-1"></i>Back to my orders</a>
+    <div class="d-flex gap-2">
+        <a asp-action="Invoice" asp-route-id="@Model.Id" class="btn btn-outline-primary" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Download invoice</a>
+        @if (canCancel)
+        {
+            <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" onsubmit="return confirm('Cancel this order? Your payment will be refunded.');">
+                @Html.AntiForgeryToken()
+                <button class="btn btn-outline-danger"><i class="bi bi-x-circle me-1"></i>Cancel order</button>
+            </form>
+        }
+    </div>
+</div>

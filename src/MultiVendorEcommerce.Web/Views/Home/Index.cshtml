@@ -1,0 +1,162 @@
+@inject Microsoft.Extensions.Localization.IStringLocalizer<Web.SharedResource> L
+@{
+    ViewData["Title"] = "Home";
+    var featured  = ViewBag.Featured  as List<Application.Products.Queries.GetPublicProducts.PublicProductCardDto> ?? new();
+    var categories = ViewBag.Categories as List<Application.Categories.Queries.GetCategoryLookup.CategoryLookupDto> ?? new();
+}
+
+<!-- Hero -->
+<section class="mv-hero mb-5">
+    <div class="row align-items-center position-relative">
+        <div class="col-lg-7">
+            <span class="badge bg-light text-primary mb-3">Multi-Vendor Marketplace</span>
+            <h1 class="display-4 mb-3">@L["Home.HeroTitle"]</h1>
+            <p class="lead mb-4">@L["Home.HeroSubtitle"]</p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-light btn-lg" asp-controller="Products" asp-action="Index">
+                    <i class="bi bi-grid-3x3-gap me-2"></i>@L["Home.BrowseProducts"]
+                </a>
+                <a class="btn btn-outline-light btn-lg" asp-controller="Stores" asp-action="List">
+                    <i class="bi bi-shop-window me-2"></i>Browse Stores
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 d-none d-lg-block text-end">
+            <i class="bi bi-bag-heart-fill" style="font-size:11rem; opacity:.18; color:#fff;"></i>
+        </div>
+    </div>
+</section>
+
+<!-- Value strip -->
+<div class="mv-feature-strip mb-5">
+    <div class="row g-3">
+        <div class="col-md-4 mv-feat">
+            <div class="mv-feat-icon"><i class="bi bi-shop-window"></i></div>
+            <div>
+                <div class="fw-semibold">Many vendors</div>
+                <small class="text-muted">Independent stores in one place</small>
+            </div>
+        </div>
+        <div class="col-md-4 mv-feat">
+            <div class="mv-feat-icon"><i class="bi bi-truck"></i></div>
+            <div>
+                <div class="fw-semibold">Fast shipping</div>
+                <small class="text-muted">Track every shipment per vendor</small>
+            </div>
+        </div>
+        <div class="col-md-4 mv-feat">
+            <div class="mv-feat-icon"><i class="bi bi-shield-check"></i></div>
+            <div>
+                <div class="fw-semibold">Secure checkout</div>
+                <small class="text-muted">Your payment info is protected</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Categories -->
+@if (categories.Any())
+{
+    <div class="mv-section-head">
+        <h4><i class="bi bi-grid me-2"></i>@L["Home.Categories"]</h4>
+        <a asp-controller="Products" asp-action="Index" class="text-decoration-none small">All products <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-3 mb-5">
+        @foreach (var c in categories)
+        {
+            <div class="col-md-2 col-4">
+                <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@c.Id" class="mv-cat">
+                    <div class="mv-cat-icon"><i class="bi bi-tag-fill"></i></div>
+                    <div class="fw-semibold">@c.Name</div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+<!-- Featured products -->
+@if (featured.Any())
+{
+    <div class="mv-section-head">
+        <h4><i class="bi bi-stars me-2"></i>@L["Home.Featured"]</h4>
+        <a asp-controller="Products" asp-action="Index" class="text-decoration-none small">View all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-3 mb-5">
+        @foreach (var p in featured)
+        {
+            var hasDiscount = p.MinVariantPrice.HasValue && p.MinVariantPrice < p.BasePrice;
+            <div class="col-md-3 col-sm-6">
+                <div class="card mv-card h-100 position-relative">
+                    @if (hasDiscount) { <span class="mv-badge-sale">SALE</span> }
+                    <a asp-controller="Products" asp-action="Details" asp-route-slug="@p.Slug" class="text-decoration-none text-reset">
+                        <div class="mv-img-wrap">
+                            @if (!string.IsNullOrEmpty(p.MainImageUrl))
+                            { <img src="@p.MainImageUrl" class="card-img-top" style="height:180px;object-fit:cover" /> }
+                            else
+                            { <div class="card-img-top bg-body-secondary d-flex justify-content-center align-items-center" style="height:180px"><i class="bi bi-image display-4 text-muted"></i></div> }
+                        </div>
+                        <div class="card-body">
+                            <div class="text-muted small text-uppercase">@p.CategoryName</div>
+                            <h6 class="card-title mt-1 mb-1">@p.Name</h6>
+                            <a asp-controller="Stores" asp-action="Index" asp-route-slug="@p.StoreSlug" class="mv-store-link" onclick="event.stopPropagation();"><i class="bi bi-shop me-1"></i>@p.StoreName</a>
+                            <div class="mt-2">
+                                <span class="mv-price">@((p.MinVariantPrice ?? p.BasePrice).ToString("0.00"))</span>
+                                @if (hasDiscount) { <span class="mv-price-old">@p.BasePrice.ToString("0.00")</span> }
+                            </div>
+                            @if (p.ReviewCount > 0)
+                            {
+                                <div class="mt-1">
+                                    <span class="mv-rating"><i class="bi bi-star-fill"></i> @p.AverageRating.ToString("0.0")</span>
+                                    <small class="text-muted">(@p.ReviewCount review@(p.ReviewCount == 1 ? "" : "s"))</small>
+                                </div>
+                            }
+                        </div>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- How it works -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="mv-section-head"><h4><i class="bi bi-list-check me-2"></i>How it works</h4></div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card mv-card h-100">
+            <div class="card-body text-center">
+                <div class="mv-cat-icon mx-auto mb-2"><i class="bi bi-search"></i></div>
+                <h6>1. Browse</h6>
+                <p class="small text-muted mb-0">Discover products across many independent stores.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card mv-card h-100">
+            <div class="card-body text-center">
+                <div class="mv-cat-icon mx-auto mb-2"><i class="bi bi-cart-plus"></i></div>
+                <h6>2. Add to cart</h6>
+                <p class="small text-muted mb-0">One cart for products from any vendor.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card mv-card h-100">
+            <div class="card-body text-center">
+                <div class="mv-cat-icon mx-auto mb-2"><i class="bi bi-credit-card"></i></div>
+                <h6>3. Checkout</h6>
+                <p class="small text-muted mb-0">One checkout. Apply coupons. Done.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="card mv-card h-100">
+            <div class="card-body text-center">
+                <div class="mv-cat-icon mx-auto mb-2"><i class="bi bi-truck"></i></div>
+                <h6>4. Track</h6>
+                <p class="small text-muted mb-0">Each vendor ships independently — track every package.</p>
+            </div>
+        </div>
+    </div>
+</div>

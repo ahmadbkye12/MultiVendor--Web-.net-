@@ -1,0 +1,115 @@
+@using Domain.Enums
+@model Web.Models.ViewModels.Checkout.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+    var vendorGroups = Model.Cart!.Items.GroupBy(i => i.StoreName).ToList();
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Cart" asp-action="Index">Cart</a></li>
+        <li class="breadcrumb-item active">Checkout</li>
+    </ol>
+</nav>
+
+<h2 class="mb-4"><i class="bi bi-credit-card me-2"></i>Checkout</h2>
+
+<form asp-action="Place" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+
+            <!-- Step 1 — shipping -->
+            <div class="mv-checkout-step">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="mv-checkout-step-num">1</span>
+                    <h5 class="mb-0">Shipping address</h5>
+                </div>
+                @foreach (var a in Model.Addresses)
+                {
+                    <label class="form-check mb-2 border rounded p-3 d-flex gap-2 align-items-start" style="cursor:pointer">
+                        <input class="form-check-input mt-1" type="radio" name="ShippingAddressId" value="@a.Id" checked="@(a.Id == Model.ShippingAddressId)" />
+                        <div class="flex-grow-1">
+                            <div>
+                                <strong>@(a.Label ?? "Address")</strong>
+                                @if (a.IsDefault) { <span class="badge bg-success ms-1">Default</span> }
+                            </div>
+                            <small class="text-muted">@a.Line1@(string.IsNullOrEmpty(a.Line2) ? "" : ", " + a.Line2), @a.City @a.PostalCode, @a.Country</small>
+                            @if (!string.IsNullOrEmpty(a.Phone))
+                            { <small class="text-muted d-block"><i class="bi bi-telephone me-1"></i>@a.Phone</small> }
+                        </div>
+                    </label>
+                }
+                <a asp-controller="Addresses" asp-action="Create" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-lg me-1"></i>Add new address</a>
+            </div>
+
+            <!-- Step 2 — payment -->
+            <div class="mv-checkout-step">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="mv-checkout-step-num">2</span>
+                    <h5 class="mb-0">Payment method</h5>
+                </div>
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-check border rounded p-3 d-flex flex-column align-items-center text-center w-100" style="cursor:pointer">
+                            <input class="form-check-input mb-2" type="radio" name="PaymentMethod" value="@PaymentMethod.CreditCard" checked />
+                            <i class="bi bi-credit-card-2-front fs-3 text-primary"></i>
+                            <span class="small fw-semibold mt-1">Credit Card</span>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-check border rounded p-3 d-flex flex-column align-items-center text-center w-100" style="cursor:pointer">
+                            <input class="form-check-input mb-2" type="radio" name="PaymentMethod" value="@PaymentMethod.BankTransfer" />
+                            <i class="bi bi-bank fs-3 text-primary"></i>
+                            <span class="small fw-semibold mt-1">Bank Transfer</span>
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-check border rounded p-3 d-flex flex-column align-items-center text-center w-100" style="cursor:pointer">
+                            <input class="form-check-input mb-2" type="radio" name="PaymentMethod" value="@PaymentMethod.CashOnDelivery" />
+                            <i class="bi bi-cash-coin fs-3 text-primary"></i>
+                            <span class="small fw-semibold mt-1">Cash on Delivery</span>
+                        </label>
+                    </div>
+                </div>
+                <small class="text-muted d-block mt-3"><i class="bi bi-shield-check me-1"></i>Payments are mocked in this academic build — no real charge is made.</small>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card mv-card" style="position:sticky;top:1rem;">
+                <div class="card-header bg-white border-0 pt-3"><h5 class="mb-0">Order summary</h5></div>
+                <div class="card-body">
+                    @foreach (var g in vendorGroups)
+                    {
+                        <div class="mb-3">
+                            <div class="small text-uppercase fw-semibold text-muted mb-1"><i class="bi bi-shop me-1"></i>@g.Key</div>
+                            @foreach (var i in g)
+                            {
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>@i.ProductName <span class="text-muted">× @i.Quantity</span></span>
+                                    <span>@i.LineTotal.ToString("0.00")</span>
+                                </div>
+                            }
+                        </div>
+                    }
+                    <hr />
+                    <div class="d-flex justify-content-between"><span class="text-muted">Items</span><strong>@Model.Cart.ItemCount</strong></div>
+                    <div class="d-flex justify-content-between mt-1"><span class="text-muted">Subtotal</span><strong>@Model.Cart.Subtotal.ToString("0.00")</strong></div>
+                    <div class="d-flex justify-content-between mt-1"><span class="text-muted">Shipping</span><span class="text-success small">Free</span></div>
+                    <hr />
+                    <div class="d-flex justify-content-between fs-5"><span>Total</span><span class="mv-price" style="font-size:1.4rem;">@Model.Cart.Subtotal.ToString("0.00")</span></div>
+                </div>
+                <div class="card-footer bg-white border-0 pb-3">
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold"><i class="bi bi-ticket-perforated me-1"></i>Coupon code (optional)</label>
+                        <input name="CouponCode" class="form-control text-uppercase" placeholder="e.g. WELCOME10" />
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100"><i class="bi bi-bag-check me-1"></i>Place order</button>
+                    <a asp-controller="Cart" asp-action="Index" class="btn btn-link w-100 mt-2 small">Back to cart</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>

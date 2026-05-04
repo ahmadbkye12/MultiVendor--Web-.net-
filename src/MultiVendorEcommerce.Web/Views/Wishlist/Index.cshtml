@@ -1,0 +1,55 @@
+@model List<Application.Wishlist.WishlistItemDto>
+@{
+    ViewData["Title"] = "Wishlist";
+}
+
+<div class="mv-section-head mb-3">
+    <div>
+        <h2 class="mb-0"><i class="bi bi-heart me-2"></i>My Wishlist</h2>
+        <small class="text-muted">@Model.Count item@(Model.Count == 1 ? "" : "s") saved for later</small>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card mv-card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-heart display-3 d-block mb-3 text-muted"></i>
+            <h5>Your wishlist is empty</h5>
+            <p class="text-muted">Save products you want to come back to.</p>
+            <a asp-controller="Products" asp-action="Index" class="btn btn-primary mt-2"><i class="bi bi-grid-3x3-gap me-1"></i>Browse products</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row g-3">
+    @foreach (var w in Model)
+    {
+        <div class="col-md-3 col-sm-6">
+            <div class="card mv-card h-100 position-relative">
+                @if (!w.InStock) { <span class="mv-badge-sale" style="background:#64748b">OUT</span> }
+                <a asp-controller="Products" asp-action="Details" asp-route-slug="@w.ProductSlug" class="text-decoration-none text-reset">
+                    <div class="mv-img-wrap">
+                        @if (!string.IsNullOrEmpty(w.ImageUrl))
+                        { <img src="@w.ImageUrl" class="card-img-top" style="height:180px;object-fit:cover" /> }
+                        else
+                        { <div class="card-img-top bg-body-secondary d-flex justify-content-center align-items-center" style="height:180px"><i class="bi bi-image display-4 text-muted"></i></div> }
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title mb-1">@w.ProductName</h6>
+                        <span class="mv-price">@w.Price.ToString("0.00")</span>
+                        @if (!w.InStock) { <span class="badge bg-secondary ms-2">Out of stock</span> }
+                    </div>
+                </a>
+                <div class="card-footer bg-white border-0 pb-3">
+                    <form asp-action="Remove" asp-route-id="@w.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-x-lg me-1"></i>Remove</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    </div>
+}

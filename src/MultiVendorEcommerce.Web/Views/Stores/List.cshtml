@@ -1,0 +1,58 @@
+@model List<Application.VendorStores.Queries.GetPublicStores.PublicStoreCardDto>
+@{
+    ViewData["Title"] = "Stores";
+}
+
+<div class="mv-section-head mb-3">
+    <div>
+        <h2 class="mb-0"><i class="bi bi-shop-window me-2"></i>Browse Stores</h2>
+        <small class="text-muted">@Model.Count store@(Model.Count == 1 ? "" : "s") · independent vendors</small>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-shop-window display-4 d-block mb-2"></i>
+        No active stores yet. Check back soon.
+    </div>
+}
+else
+{
+    <div class="row g-3">
+    @foreach (var s in Model)
+    {
+        <div class="col-md-4 col-sm-6">
+            <a asp-action="Index" asp-route-slug="@s.Slug" class="text-decoration-none text-reset">
+                <div class="card mv-card h-100 overflow-hidden">
+                    @if (!string.IsNullOrEmpty(s.BannerUrl))
+                    {
+                        <img src="@s.BannerUrl" class="mv-img mv-store-banner" />
+                    }
+                    else
+                    {
+                        <div class="mv-store-banner bg-body-secondary d-flex justify-content-center align-items-center"><i class="bi bi-shop fs-1 text-muted"></i></div>
+                    }
+                    <div class="card-body text-center">
+                        @if (!string.IsNullOrEmpty(s.LogoUrl))
+                        {
+                            <img src="@s.LogoUrl" class="mv-store-logo" />
+                        }
+                        else
+                        {
+                            <div class="mv-store-logo d-flex justify-content-center align-items-center bg-body-secondary"><i class="bi bi-shop text-muted"></i></div>
+                        }
+                        <h5 class="mt-2 mb-0">@s.Name</h5>
+                        <small class="text-muted">@s.VendorBusiness</small>
+                        <div class="mt-2">
+                            <span class="badge rounded-pill bg-primary">
+                                <i class="bi bi-box-seam me-1"></i>@s.ProductCount product@(s.ProductCount == 1 ? "" : "s")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+    </div>
+}

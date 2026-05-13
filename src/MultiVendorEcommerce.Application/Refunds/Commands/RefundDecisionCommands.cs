@@ -15,8 +15,16 @@ public sealed class ApproveRefundCommandHandler : IRequestHandler<ApproveRefundC
     private readonly IApplicationDbContext _db;
     private readonly IDateTimeService _clock;
     private readonly IRealtimeNotifier _rt;
-    public ApproveRefundCommandHandler(IApplicationDbContext db, IDateTimeService clock, IRealtimeNotifier rt)
-    { _db = db; _clock = clock; _rt = rt; }
+    private readonly IStripePaymentService _stripe;
+
+    public ApproveRefundCommandHandler(
+        IApplicationDbContext db,
+        IDateTimeService clock,
+        IRealtimeNotifier rt,
+        IStripePaymentService stripe)
+    {
+        _db = db; _clock = clock; _rt = rt; _stripe = stripe;
+    }
 
     public async Task<Result> Handle(ApproveRefundCommand req, CancellationToken ct)
     {
@@ -26,11 +34,23 @@ public sealed class ApproveRefundCommandHandler : IRequestHandler<ApproveRefundC
         if (order is null) return Result.Failure("Order not found.");
         if (!order.RefundRequestedAtUtc.HasValue) return Result.Failure("No refund request on file.");
 
+        var captured = order.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Captured);
+        if (captured is not null)
+        {
+            if (IsStripePayment(captured))
+            {
+                if (!await _stripe.IsConfiguredAsync(ct))
+                    return Result.Failure("Refund could not be sent to Stripe — keys are not configured.");
+                var (ok, _, err) = await _stripe.RefundPaymentIntentAsync(captured.ExternalPaymentId!, ct);
+                if (!ok)
+                    return Result.Failure($"Stripe refund failed: {err}");
+            }
+
+            captured.Status = PaymentStatus.Refunded;
+        }
+
         order.Status = OrderStatus.Refunded;
         order.RefundedAtUtc = _clock.UtcNow;
-
-        var captured = order.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Captured);
-        if (captured is not null) captured.Status = PaymentStatus.Refunded;
 
         var title = "Refund approved";
         var body  = $"Your refund for order {order.OrderNumber} has been approved.";
@@ -46,6 +66,10 @@ public sealed class ApproveRefundCommandHandler : IRequestHandler<ApproveRefundC
         await _rt.NotifyUserAsync(order.CustomerUserId, title, body, url, ct);
         return Result.Success();
     }
+
+    private static bool IsStripePayment(Payment p) =>
+        string.Equals(p.Provider, "Stripe", StringComparison.OrdinalIgnoreCase)
+        || (!string.IsNullOrEmpty(p.ExternalPaymentId) && p.ExternalPaymentId.StartsWith("pi_", StringComparison.Ordinal));
 }
 
 // ----- Reject -----

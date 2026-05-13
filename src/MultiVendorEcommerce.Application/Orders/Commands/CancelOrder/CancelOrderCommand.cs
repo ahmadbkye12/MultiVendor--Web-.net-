@@ -1,6 +1,7 @@
 using Application.Common.Exceptions;
 using Application.Common.Interfaces;
 using Application.Common.Models;
+using Domain.Entities;
 using Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,12 @@ public sealed class CancelOrderCommandHandler : IRequestHandler<CancelOrderComma
     private readonly IApplicationDbContext _db;
     private readonly ICurrentUserService _user;
     private readonly IDateTimeService _clock;
+    private readonly IStripePaymentService _stripe;
 
-    public CancelOrderCommandHandler(IApplicationDbContext db, ICurrentUserService user, IDateTimeService clock)
+    public CancelOrderCommandHandler(IApplicationDbContext db, ICurrentUserService user, IDateTimeService clock,
+        IStripePaymentService stripe)
     {
-        _db = db; _user = user; _clock = clock;
+        _db = db; _user = user; _clock = clock; _stripe = stripe;
     }
 
     public async Task<Result> Handle(CancelOrderCommand req, CancellationToken ct)
@@ -39,6 +42,21 @@ public sealed class CancelOrderCommandHandler : IRequestHandler<CancelOrderComma
         if (order.Status == OrderStatus.Cancelled || order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Refunded)
             return Result.Failure($"Order is already {order.Status}.");
 
+        var captured = order.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Captured);
+        if (captured is not null)
+        {
+            if (IsStripePayment(captured))
+            {
+                if (!await _stripe.IsConfiguredAsync(ct))
+                    return Result.Failure("Cannot cancel — Stripe is not configured, so the card payment cannot be refunded automatically.");
+                var (ok, _, err) = await _stripe.RefundPaymentIntentAsync(captured.ExternalPaymentId!, ct);
+                if (!ok)
+                    return Result.Failure($"Stripe refund failed: {err}");
+            }
+
+            captured.Status = PaymentStatus.Refunded;
+        }
+
         // Restore stock + cancel items.
         foreach (var i in order.Items)
         {
@@ -49,11 +67,11 @@ public sealed class CancelOrderCommandHandler : IRequestHandler<CancelOrderComma
         order.Status = OrderStatus.Cancelled;
         order.CancelledAtUtc = _clock.UtcNow;
 
-        // Mock-refund the latest captured payment.
-        var captured = order.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Captured);
-        if (captured is not null) captured.Status = PaymentStatus.Refunded;
-
         await _db.SaveChangesAsync(ct);
         return Result.Success();
     }
+
+    private static bool IsStripePayment(Payment p) =>
+        string.Equals(p.Provider, "Stripe", StringComparison.OrdinalIgnoreCase)
+        || (!string.IsNullOrEmpty(p.ExternalPaymentId) && p.ExternalPaymentId.StartsWith("pi_", StringComparison.Ordinal));
 }

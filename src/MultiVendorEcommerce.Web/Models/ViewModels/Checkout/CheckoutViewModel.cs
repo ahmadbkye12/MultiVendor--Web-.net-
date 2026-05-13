@@ -11,7 +11,7 @@ public class CheckoutViewModel
     public Guid ShippingAddressId { get; set; }
 
     [Required, Display(Name = "Payment method")]
-    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Stripe;
 
     [StringLength(40), Display(Name = "Coupon code")]
     public string? CouponCode { get; set; }

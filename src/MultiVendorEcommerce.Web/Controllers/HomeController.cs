@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Application.Categories.Queries.GetCategoryLookup;
 using Application.Common.Interfaces;
 using Application.Products.Queries.GetFeaturedProducts;
+using Application.Settings.Queries.GetPublicWebsiteSettings;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Web.Models;
@@ -37,17 +38,31 @@ public class HomeController : Controller
     public IActionResult Privacy() => View();
 
     [HttpGet]
-    public IActionResult Contact() => View(new ContactViewModel());
+    public async Task<IActionResult> Contact()
+    {
+        ViewBag.Site = await _mediator.Send(new GetPublicWebsiteSettingsQuery());
+        return View(new ContactViewModel());
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Contact(ContactViewModel vm)
     {
+        var site = await _mediator.Send(new GetPublicWebsiteSettingsQuery());
+        ViewBag.Site = site;
+
         if (!ModelState.IsValid) return View(vm);
+
+        var to = site.EffectiveContactRecipient;
+        if (string.IsNullOrEmpty(to))
+        {
+            ModelState.AddModelError(string.Empty, "Contact email is not configured. Ask an administrator to set it under Admin → Website & SEO.");
+            return View(vm);
+        }
 
         var body = $"<p><strong>From:</strong> {vm.Name} &lt;{vm.Email}&gt;</p>" +
                    $"<p><strong>Subject:</strong> {vm.Subject}</p>" +
                    $"<hr/><p>{System.Net.WebUtility.HtmlEncode(vm.Message).Replace("\n", "<br/>")}</p>";
-        await _email.SendAsync("ahmadbkye12@gmail.com", $"[Contact form] {vm.Subject}", body);
+        await _email.SendAsync(to, $"[Contact form] {vm.Subject}", body);
 
         TempData["Success"] = "Thanks! We received your message and will get back to you soon.";
         return RedirectToAction(nameof(Contact));

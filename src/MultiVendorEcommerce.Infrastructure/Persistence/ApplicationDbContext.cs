@@ -30,6 +30,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<Notification>    Notifications    => Set<Notification>();
     public DbSet<AuditLog>        AuditLogs        => Set<AuditLog>();
     public DbSet<RefreshToken>    RefreshTokens    => Set<RefreshToken>();
+    public DbSet<StripeSettings>  StripeSettings   => Set<StripeSettings>();
+    public DbSet<WebsiteSettings>  WebsiteSettings  => Set<WebsiteSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

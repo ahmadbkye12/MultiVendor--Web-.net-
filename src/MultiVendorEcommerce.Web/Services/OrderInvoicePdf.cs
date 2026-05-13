@@ -21,7 +21,7 @@ public static class OrderInvoicePdf
                 {
                     row.RelativeItem().Column(col =>
                     {
-                        col.Item().Text("MultiVendor Marketplace").Bold().FontSize(18);
+                        col.Item().Text("Rezej Marketplace").Bold().FontSize(18);
                         col.Item().Text("Invoice").FontColor(Colors.Grey.Medium);
                     });
                     row.ConstantItem(180).AlignRight().Column(col =>
@@ -101,7 +101,7 @@ public static class OrderInvoicePdf
 
                 page.Footer().AlignCenter().Text(t =>
                 {
-                    t.Span("MultiVendor Marketplace — generated ").FontColor(Colors.Grey.Medium);
+                    t.Span("Rezej Marketplace — generated ").FontColor(Colors.Grey.Medium);
                     t.Span(DateTime.UtcNow.ToString("u")).FontColor(Colors.Grey.Medium);
                 });
             });

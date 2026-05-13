@@ -1,6 +1,8 @@
 @model Web.Models.ViewModels.Home.ContactViewModel
+@using Application.Settings
 @{
     ViewData["Title"] = "Contact us";
+    var site = ViewBag.Site as PublicWebsiteSettingsDto ?? new PublicWebsiteSettingsDto();
 }
 
 <section class="mv-hero mb-5">
@@ -8,7 +10,7 @@
         <div class="col-lg-7">
             <span class="badge bg-light text-primary mb-3">Get in touch</span>
             <h1 class="display-5 mb-3">We'd love to hear from you</h1>
-            <p class="lead mb-0">Questions, feedback, or partnership ideas — drop us a line and we'll reply within a business day.</p>
+            <p class="lead mb-0">@(site.SiteTagline ?? "Questions, feedback, or partnership ideas — drop us a line and we'll reply within a business day.")</p>
         </div>
         <div class="col-lg-5 d-none d-lg-block text-end">
             <i class="bi bi-chat-dots-fill" style="font-size:10rem; opacity:.18; color:#fff;"></i>
@@ -57,11 +59,32 @@
         <div class="card mv-card mb-3">
             <div class="card-body">
                 <h6 class="text-muted small text-uppercase">Email us</h6>
-                <p class="mb-3"><i class="bi bi-envelope me-2 text-primary"></i><a href="mailto:ahmadbkye12@gmail.com" class="text-decoration-none">ahmadbkye12@gmail.com</a></p>
+                @if (!string.IsNullOrWhiteSpace(site.ContactEmail))
+                {
+                    <p class="mb-3"><i class="bi bi-envelope me-2 text-primary"></i><a href="mailto:@site.ContactEmail" class="text-decoration-none">@site.ContactEmail</a></p>
+                }
+                else
+                {
+                    <p class="mb-3 text-muted small">Not configured yet.</p>
+                }
                 <h6 class="text-muted small text-uppercase">Call us</h6>
-                <p class="mb-3"><i class="bi bi-telephone me-2 text-primary"></i>+90 537 363 53 06</p>
+                @if (!string.IsNullOrWhiteSpace(site.ContactPhone))
+                {
+                    <p class="mb-3"><i class="bi bi-telephone me-2 text-primary"></i>@site.ContactPhone</p>
+                }
+                else
+                {
+                    <p class="mb-3 text-muted small">—</p>
+                }
                 <h6 class="text-muted small text-uppercase">Visit</h6>
-                <p class="mb-0"><i class="bi bi-geo-alt me-2 text-primary"></i>123 Marketplace Ave, Anytown</p>
+                @if (!string.IsNullOrWhiteSpace(site.ContactAddress))
+                {
+                    <p class="mb-0"><i class="bi bi-geo-alt me-2 text-primary"></i>@site.ContactAddress</p>
+                }
+                else
+                {
+                    <p class="mb-0 text-muted small">—</p>
+                }
             </div>
         </div>
         <div class="card mv-card">

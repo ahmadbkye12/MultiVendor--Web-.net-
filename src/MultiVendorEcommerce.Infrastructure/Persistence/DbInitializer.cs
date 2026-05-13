@@ -43,6 +43,8 @@ public static class DbInitializer
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
 
+        await EnsurePlatformSettingsAsync(db);
+
         // ----- Admin -----
         var adminEmail = "admin@shop.com";
         if (await userManager.FindByEmailAsync(adminEmail) is null)
@@ -113,6 +115,43 @@ public static class DbInitializer
             IsActive = true,
             IconUrl = $"https://picsum.photos/seed/{picsumSeed}/120/120"
         });
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task EnsurePlatformSettingsAsync(ApplicationDbContext db)
+    {
+        if (!await db.StripeSettings.AnyAsync())
+        {
+            db.StripeSettings.Add(new StripeSettings
+            {
+                Id = StripeSettings.SingletonId,
+                Currency = "usd",
+                SecretKey = "",
+                PublishableKey = ""
+            });
+        }
+
+        if (!await db.WebsiteSettings.AnyAsync())
+        {
+            db.WebsiteSettings.Add(new WebsiteSettings
+            {
+                Id = WebsiteSettings.SingletonId,
+                SiteName = "Rezej Marketplace",
+                SiteTagline = "Independent vendors, one trusted checkout.",
+                TopBarPromo1 = "Free shipping over $50",
+                TopBarPromo2 = "Secure payments",
+                TopBarPromo3 = "Easy returns",
+                FooterTagline = "A trusted marketplace where independent vendors meet curious customers — one cart, one checkout, many stores.",
+                FooterCopyrightSuffix = "Rezej Marketplace",
+                ContactEmail = "support@example.com",
+                DefaultMetaTitle = "Rezej Marketplace — Shop independent stores",
+                DefaultMetaDescription = "Discover products from verified vendors. Secure checkout, fast shipping, and easy returns.",
+                DefaultMetaKeywords = "marketplace, multi-vendor, online shopping, independent sellers",
+                RobotsMeta = "index, follow",
+                OgSiteName = "Rezej Marketplace"
+            });
+        }
+
         await db.SaveChangesAsync();
     }
 

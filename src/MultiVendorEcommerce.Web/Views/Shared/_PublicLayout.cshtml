@@ -6,6 +6,32 @@
 @inject IStringLocalizer<Web.SharedResource> L
 @inject ISender Mediator
 @{
+    Application.Settings.PublicWebsiteSettingsDto site;
+    try
+    {
+        site = await Mediator.Send(new Application.Settings.Queries.GetPublicWebsiteSettings.GetPublicWebsiteSettingsQuery());
+    }
+    catch
+    {
+        site = new Application.Settings.PublicWebsiteSettingsDto();
+    }
+
+    var siteName = string.IsNullOrWhiteSpace(site.SiteName) ? "MultiVendor" : site.SiteName;
+    var pageTitle = ViewData["Title"] as string;
+    var htmlTitle = ViewData["FullTitle"] as string;
+    if (string.IsNullOrEmpty(htmlTitle))
+        htmlTitle = string.IsNullOrEmpty(pageTitle) ? siteName : $"{pageTitle} · {siteName}";
+    var metaDesc = ViewData["MetaDescription"] as string ?? site.DefaultMetaDescription;
+    var metaKeywords = ViewData["MetaKeywords"] as string ?? site.DefaultMetaKeywords;
+    var ogTitle = ViewData["OgTitle"] as string ?? site.DefaultOgTitle ?? htmlTitle;
+    var ogImage = ViewData["OgImage"] as string ?? site.OgDefaultImageUrl;
+    var ogSite = site.OgSiteName ?? siteName;
+    var robots = string.IsNullOrWhiteSpace(site.RobotsMeta) ? "index, follow" : site.RobotsMeta!;
+    var baseForAbsolute = site.PublicBaseUrl?.Trim().TrimEnd('/');
+    var requestRoot = $"{Context.Request.Scheme}://{Context.Request.Host.Value}";
+    var absoluteRoot = string.IsNullOrEmpty(baseForAbsolute) ? requestRoot : baseForAbsolute!;
+    var canonicalUrl = $"{absoluteRoot}{Context.Request.Path}{Context.Request.QueryString}";
+    var twitterSite = site.TwitterSite?.Trim();
     int cartCount = 0;
     int unreadCount = 0;
     if (SignInManager.IsSignedIn(User))
@@ -22,7 +48,63 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>@ViewData["Title"] - MultiVendor Marketplace</title>
+    <title>@htmlTitle</title>
+    @if (!string.IsNullOrWhiteSpace(metaDesc))
+    {
+        <meta name="description" content="@metaDesc" />
+    }
+    @if (!string.IsNullOrWhiteSpace(metaKeywords))
+    {
+        <meta name="keywords" content="@metaKeywords" />
+    }
+    <meta name="robots" content="@robots" />
+    @if (!string.IsNullOrWhiteSpace(site.ThemeColor))
+    {
+        <meta name="theme-color" content="@site.ThemeColor" />
+    }
+    @if (!string.IsNullOrWhiteSpace(site.GoogleSiteVerification))
+    {
+        <meta name="google-site-verification" content="@site.GoogleSiteVerification" />
+    }
+    @if (!string.IsNullOrWhiteSpace(site.BingSiteVerification))
+    {
+        <meta name="msvalidate.01" content="@site.BingSiteVerification" />
+    }
+    <link rel="canonical" href="@canonicalUrl" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@ogTitle" />
+    @if (!string.IsNullOrWhiteSpace(metaDesc))
+    {
+        <meta property="og:description" content="@metaDesc" />
+    }
+    <meta property="og:url" content="@canonicalUrl" />
+    <meta property="og:site_name" content="@ogSite" />
+    @if (!string.IsNullOrWhiteSpace(ogImage))
+    {
+        <meta property="og:image" content="@(ogImage!.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? ogImage : absoluteRoot + ogImage)" />
+    }
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@ogTitle" />
+    @if (!string.IsNullOrWhiteSpace(metaDesc))
+    {
+        <meta name="twitter:description" content="@metaDesc" />
+    }
+    @if (!string.IsNullOrWhiteSpace(ogImage))
+    {
+        <meta name="twitter:image" content="@(ogImage!.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? ogImage : absoluteRoot + ogImage)" />
+    }
+    @if (!string.IsNullOrWhiteSpace(twitterSite))
+    {
+        <meta name="twitter:site" content="@twitterSite" />
+    }
+    @if (!string.IsNullOrWhiteSpace(site.FaviconUrl))
+    {
+        <link rel="icon" href="@site.FaviconUrl" />
+    }
+    @if (!string.IsNullOrWhiteSpace(site.StructuredDataJsonLd))
+    {
+        <script type="application/ld+json">@Html.Raw(site.StructuredDataJsonLd)</script>
+    }
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -36,11 +118,11 @@
     <div class="mv-topbar">
         <div class="container-fluid px-3 px-md-4 px-xl-5 d-flex justify-content-between align-items-center">
             <div class="d-none d-md-flex gap-3 small align-items-center">
-                <span><i class="bi bi-truck me-1"></i>Free shipping over $50</span>
+                <span><i class="bi bi-truck me-1"></i>@(site.TopBarPromo1 ?? "Free shipping over $50")</span>
                 <span class="opacity-40">·</span>
-                <span><i class="bi bi-shield-check me-1"></i>Secure payments</span>
+                <span><i class="bi bi-shield-check me-1"></i>@(site.TopBarPromo2 ?? "Secure payments")</span>
                 <span class="opacity-40">·</span>
-                <span><i class="bi bi-arrow-counterclockwise me-1"></i>Easy returns</span>
+                <span><i class="bi bi-arrow-counterclockwise me-1"></i>@(site.TopBarPromo3 ?? "Easy returns")</span>
             </div>
             <div class="d-flex gap-3 small ms-auto align-items-center">
                 <a asp-controller="Home" asp-action="Contact" class="mv-topbar-link d-none d-md-inline">
@@ -63,9 +145,16 @@
     <!-- Main navbar -->
     <nav class="navbar navbar-expand-lg mv-navbar sticky-top" id="mainNavbar">
         <div class="container-fluid px-3 px-md-4 px-xl-5">
-            <a class="navbar-brand mv-navbar__brand" asp-controller="Home" asp-action="Index">
-                <span class="mv-navbar__logo-icon"><i class="bi bi-shop-window"></i></span>
-                <span class="mv-navbar__logo-text">MultiVendor</span>
+            <a class="navbar-brand mv-navbar__brand d-flex align-items-center gap-2" asp-controller="Home" asp-action="Index">
+                @if (!string.IsNullOrWhiteSpace(site.HeaderLogoUrl))
+                {
+                    <img src="@site.HeaderLogoUrl" alt="@siteName" style="max-height:38px;width:auto;" />
+                }
+                else
+                {
+                    <span class="mv-navbar__logo-icon"><i class="bi bi-shop-window"></i></span>
+                }
+                <span class="mv-navbar__logo-text">@siteName</span>
             </a>
 
             <div class="d-flex align-items-center gap-1 d-lg-none ms-auto me-2">
@@ -194,15 +283,28 @@
             <div class="row g-4">
                 <div class="col-md-4">
                     <a class="d-inline-block mb-2 fw-bold fs-4 text-decoration-none" asp-controller="Home" asp-action="Index" style="background: var(--mv-grad-1); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-                        <i class="bi bi-shop me-1" style="-webkit-text-fill-color: #6366f1;"></i>MultiVendor
+                        @if (!string.IsNullOrWhiteSpace(site.FooterLogoUrl))
+                        {
+                            <img src="@site.FooterLogoUrl" alt="@siteName" style="max-height:40px;-webkit-text-fill-color:initial;" class="d-inline-block me-2 align-middle" />
+                        }
+                        else
+                        {
+                            <i class="bi bi-shop me-1" style="-webkit-text-fill-color: #6366f1;"></i>
+                        }
+                        @siteName
                     </a>
-                    <p class="text-muted small">A trusted marketplace where independent vendors meet curious customers — one cart, one checkout, many stores.</p>
-                    <div class="d-flex gap-2 mt-3">
-                        <a href="#" class="mv-social"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="mv-social"><i class="bi bi-twitter-x"></i></a>
-                        <a href="#" class="mv-social"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="mv-social"><i class="bi bi-youtube"></i></a>
-                        <a href="#" class="mv-social"><i class="bi bi-linkedin"></i></a>
+                    <p class="text-muted small">@(site.FooterTagline ?? "A trusted marketplace where independent vendors meet curious customers — one cart, one checkout, many stores.")</p>
+                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                        @if (!string.IsNullOrWhiteSpace(site.SocialFacebookUrl))
+                        { <a href="@site.SocialFacebookUrl" class="mv-social" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="bi bi-facebook"></i></a> }
+                        @if (!string.IsNullOrWhiteSpace(site.SocialTwitterUrl))
+                        { <a href="@site.SocialTwitterUrl" class="mv-social" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="bi bi-twitter-x"></i></a> }
+                        @if (!string.IsNullOrWhiteSpace(site.SocialInstagramUrl))
+                        { <a href="@site.SocialInstagramUrl" class="mv-social" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="bi bi-instagram"></i></a> }
+                        @if (!string.IsNullOrWhiteSpace(site.SocialYoutubeUrl))
+                        { <a href="@site.SocialYoutubeUrl" class="mv-social" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="bi bi-youtube"></i></a> }
+                        @if (!string.IsNullOrWhiteSpace(site.SocialLinkedInUrl))
+                        { <a href="@site.SocialLinkedInUrl" class="mv-social" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a> }
                     </div>
                 </div>
 
@@ -247,7 +349,7 @@
 
         <div class="mv-footer-bar">
             <div class="container-fluid px-3 px-md-4 px-xl-5 py-3 d-flex flex-wrap justify-content-between align-items-center">
-                <small class="text-muted">&copy; @DateTime.UtcNow.Year MultiVendor Marketplace · Academic project</small>
+                <small class="text-muted">&copy; @DateTime.UtcNow.Year @siteName@(string.IsNullOrWhiteSpace(site.FooterCopyrightSuffix) ? "" : " · " + site.FooterCopyrightSuffix)</small>
                 <div class="d-flex gap-2 small">
                     <span class="mv-pay"><i class="bi bi-credit-card-2-front"></i> Visa</span>
                     <span class="mv-pay"><i class="bi bi-credit-card-2-front"></i> MasterCard</span>

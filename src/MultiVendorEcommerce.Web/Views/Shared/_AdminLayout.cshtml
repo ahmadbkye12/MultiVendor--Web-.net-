@@ -18,7 +18,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes" />
-    <title>@ViewData["Title"] - MultiVendor Marketplace</title>
+    <title>@ViewData["Title"] - Rezej Marketplace</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/styles/overlayscrollbars.min.css" />
@@ -140,6 +140,17 @@
                                     <i class="nav-icon bi bi-ticket-perforated"></i><p>Coupons</p>
                                 </a>
                             </li>
+                            <li class="nav-header">PLATFORM</li>
+                            <li class="nav-item">
+                                <a asp-area="Admin" asp-controller="WebsiteSettings" asp-action="Index" class="nav-link">
+                                    <i class="nav-icon bi bi-globe2"></i><p>Website &amp; SEO</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a asp-area="Admin" asp-controller="StripeSettings" asp-action="Index" class="nav-link">
+                                    <i class="nav-icon bi bi-credit-card"></i><p>Stripe payments</p>
+                                </a>
+                            </li>
                             <li class="nav-item">
                                 <a asp-area="Admin" asp-controller="AuditLogs" asp-action="Index" class="nav-link">
                                     <i class="nav-icon bi bi-journal-text"></i><p>Audit Logs</p>
@@ -227,7 +238,7 @@
 
         <footer class="app-footer">
             <div class="float-end d-none d-sm-inline">v1.0.0</div>
-            <strong>&copy; @DateTime.UtcNow.Year MultiVendor Marketplace</strong> — All rights reserved.
+            <strong>&copy; @DateTime.UtcNow.Year Rezej Marketplace</strong> — All rights reserved.
         </footer>
     </div>
 

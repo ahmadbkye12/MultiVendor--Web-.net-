@@ -3,83 +3,120 @@
     ViewData["Title"] = "Your Cart";
 }
 
-<h2 class="mb-3"><i class="bi bi-cart3 me-2"></i>Your Cart</h2>
+<div class="mv-page-header">
+    <div>
+        <h1 class="mv-page-header__title"><i class="bi bi-cart3"></i>Your Cart</h1>
+        @if (Model.Items.Any())
+        { <p class="mv-page-header__sub">@Model.ItemCount item@(Model.ItemCount == 1 ? "" : "s") in your cart</p> }
+    </div>
+    @if (Model.Items.Any())
+    {
+        <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Continue shopping
+        </a>
+    }
+</div>
 
 @if (!Model.Items.Any())
 {
-    <div class="card mv-card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-cart-x display-3 d-block mb-3 text-muted"></i>
-            <h5>Your cart is empty</h5>
-            <p class="text-muted">Browse products and add what you like.</p>
-            <a asp-controller="Products" asp-action="Index" class="btn btn-primary mt-2"><i class="bi bi-grid-3x3-gap me-1"></i>Browse products</a>
-        </div>
+    <div class="mv-empty-state">
+        <div class="mv-empty-state__icon"><i class="bi bi-cart-x"></i></div>
+        <h4>Your cart is empty</h4>
+        <p>Browse our products and add the ones you love.</p>
+        <a asp-controller="Products" asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-grid-3x3-gap me-1"></i>Browse products
+        </a>
     </div>
 }
 else
 {
     <div class="row g-4">
         <div class="col-lg-8">
-            @foreach (var i in Model.Items)
-            {
-                <div class="mv-cart-item mb-3">
-                    @if (!string.IsNullOrEmpty(i.ImageUrl))
-                    { <img src="@i.ImageUrl" class="rounded" style="width:80px;height:80px;object-fit:cover" /> }
-                    else
-                    { <div class="rounded bg-body-secondary text-center" style="width:80px;height:80px;line-height:80px"><i class="bi bi-image"></i></div> }
+            <div class="d-flex flex-column gap-3">
+                @foreach (var i in Model.Items)
+                {
+                    <div class="mv-cart-item">
+                        @if (!string.IsNullOrEmpty(i.ImageUrl))
+                        {
+                            <img src="@i.ImageUrl" class="mv-cart-item__img" alt="@i.ProductName" />
+                        }
+                        else
+                        {
+                            <div class="mv-cart-item__img d-flex align-items-center justify-content-center">
+                                <i class="bi bi-image fs-3 text-muted"></i>
+                            </div>
+                        }
 
-                    <div>
-                        <a asp-controller="Products" asp-action="Details" asp-route-slug="@i.ProductSlug" class="text-decoration-none text-reset">
-                            <strong>@i.ProductName</strong>
-                        </a>
-                        <div class="small text-muted"><i class="bi bi-shop me-1"></i>@i.StoreName</div>
-                        <div class="small text-muted">
-                            <code>@i.VariantSku</code>
-                            @if (!string.IsNullOrEmpty(i.VariantColor)) { <span class="ms-1">· @i.VariantColor</span> }
-                            @if (!string.IsNullOrEmpty(i.VariantSize)) { <span class="ms-1">· @i.VariantSize</span> }
+                        <div class="min-w-0">
+                            <a asp-controller="Products" asp-action="Details" asp-route-slug="@i.ProductSlug" class="mv-cart-item__name d-block mb-1">@i.ProductName</a>
+                            <div class="mv-cart-item__meta mb-2">
+                                <span><i class="bi bi-shop me-1"></i>@i.StoreName</span>
+                                @if (!string.IsNullOrEmpty(i.VariantSku)) { <span class="ms-2"><code>@i.VariantSku</code></span> }
+                                @if (!string.IsNullOrEmpty(i.VariantColor)) { <span class="ms-2">· @i.VariantColor</span> }
+                                @if (!string.IsNullOrEmpty(i.VariantSize)) { <span class="ms-2">· @i.VariantSize</span> }
+                            </div>
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <form asp-action="Update" method="post" class="d-flex gap-1 align-items-center">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@i.Id" />
+                                    <input type="number" name="quantity" value="@i.Quantity" min="1" max="@i.StockAvailable"
+                                           class="form-control form-control-sm text-center" style="width:70px" />
+                                    <button class="btn btn-sm btn-outline-secondary" title="Update qty"><i class="bi bi-arrow-clockwise"></i></button>
+                                </form>
+                                <form asp-action="Remove" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@i.Id" />
+                                    <button class="btn btn-sm btn-outline-danger" title="Remove">
+                                        <i class="bi bi-trash me-1"></i>Remove
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                        <div class="d-md-none mv-price mt-2">@i.LineTotal.ToString("0.00")</div>
-                    </div>
 
-                    <div class="d-none d-md-block text-end">
-                        <div class="small text-muted">Unit</div>
-                        <div>@i.UnitPrice.ToString("0.00")</div>
+                        <div class="text-end">
+                            <div class="text-muted" style="font-size:.75rem;">each</div>
+                            <div class="small fw-semibold text-secondary">$@i.UnitPrice.ToString("0.00")</div>
+                            <div class="mv-cart-item__price mt-1">$@i.LineTotal.ToString("0.00")</div>
+                        </div>
                     </div>
-
-                    <form asp-action="Update" method="post" class="d-flex gap-1">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@i.Id" />
-                        <input type="number" name="quantity" value="@i.Quantity" min="1" max="@i.StockAvailable" class="form-control form-control-sm" style="width:70px" />
-                        <button class="btn btn-sm btn-outline-secondary" title="Update"><i class="bi bi-arrow-clockwise"></i></button>
-                    </form>
-
-                    <div class="d-none d-md-flex flex-column align-items-end gap-2">
-                        <span class="mv-price">@i.LineTotal.ToString("0.00")</span>
-                        <form asp-action="Remove" method="post">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@i.Id" />
-                            <button class="btn btn-sm btn-outline-danger" title="Remove"><i class="bi bi-x-lg"></i></button>
-                        </form>
-                    </div>
-                </div>
-            }
+                }
+            </div>
         </div>
 
         <div class="col-lg-4">
-            <div class="card mv-card" style="position:sticky;top:1rem;">
-                <div class="card-header bg-white border-0 pt-3"><h5 class="mb-0">Order summary</h5></div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between"><span class="text-muted">Items</span><strong>@Model.ItemCount</strong></div>
-                    <div class="d-flex justify-content-between mt-2"><span class="text-muted">Subtotal</span><strong>@Model.Subtotal.ToString("0.00")</strong></div>
-                    <div class="d-flex justify-content-between mt-2"><span class="text-muted">Shipping</span><span class="text-success small">Calculated at checkout</span></div>
-                    <hr />
-                    <div class="d-flex justify-content-between fs-5"><span>Total</span><span class="mv-price" style="font-size:1.4rem;">@Model.Subtotal.ToString("0.00")</span></div>
+            <div class="mv-cart-summary">
+                <div class="p-4 pb-3">
+                    <h5 class="fw-bold mb-3" style="color:#0f172a;letter-spacing:-0.01em;">Order summary</h5>
+                    <div class="mv-cart-summary__row">
+                        <span class="text-muted">Items</span>
+                        <strong>@Model.ItemCount</strong>
+                    </div>
+                    <div class="mv-cart-summary__row">
+                        <span class="text-muted">Subtotal</span>
+                        <strong>$@Model.Subtotal.ToString("0.00")</strong>
+                    </div>
+                    <div class="mv-cart-summary__row">
+                        <span class="text-muted">Shipping</span>
+                        <span class="text-success fw-semibold small"><i class="bi bi-truck me-1"></i>Calculated at checkout</span>
+                    </div>
+                    <hr style="border-color:#f1f5f9;margin:0.75rem 0;" />
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fw-bold">Total</span>
+                        <span class="mv-cart-summary__total">$@Model.Subtotal.ToString("0.00")</span>
+                    </div>
                 </div>
-                <div class="card-footer bg-white border-0 pb-3">
-                    <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary w-100">
-                        <i class="bi bi-credit-card me-1"></i>Proceed to checkout
+                <div class="p-4 pt-0 d-flex flex-column gap-2">
+                    <a asp-controller="Checkout" asp-action="Index" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-shield-check me-2"></i>Proceed to checkout
                     </a>
-                    <a asp-controller="Products" asp-action="Index" class="btn btn-link w-100 mt-2 small">Continue shopping</a>
+                    <a asp-controller="Products" asp-action="Index" class="btn btn-outline-secondary w-100 btn-sm">
+                        Continue shopping
+                    </a>
+                </div>
+                <div class="px-4 pb-4 d-flex justify-content-center gap-3 text-muted" style="font-size:.72rem;">
+                    <span><i class="bi bi-lock me-1"></i>Secure checkout</span>
+                    <span><i class="bi bi-arrow-counterclockwise me-1"></i>Easy returns</span>
+                    <span><i class="bi bi-truck me-1"></i>Fast delivery</span>
                 </div>
             </div>
         </div>

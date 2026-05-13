@@ -8,17 +8,22 @@
     var catId = ViewBag.CategoryId as Guid?;
 }
 
-<div class="mv-section-head mb-3">
-    <div>
-        <h2 class="mb-0"><i class="bi bi-grid me-2"></i>Products</h2>
-        <small class="text-muted">@Model.TotalCount product@(Model.TotalCount == 1 ? "" : "s") found</small>
+<div class="mv-page-hero mb-4">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h2 class="mb-2"><i class="bi bi-grid me-2"></i>Products</h2>
+            <p class="lead mb-0 small">@Model.TotalCount product@(Model.TotalCount == 1 ? "" : "s") found — shop the marketplace in one place.</p>
+        </div>
+        <div class="col-lg-4 d-none d-lg-flex justify-content-end">
+            <i class="bi bi-bag-check" style="font-size:4.5rem;opacity:.2"></i>
+        </div>
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-4 g-xl-5">
     <aside class="col-lg-3">
-        <div class="card mv-card" style="position:sticky; top:1rem;">
-            <div class="card-header bg-white border-0 pt-3">
+        <div class="card mv-card mv-filter-panel border-0" style="position:sticky; top:5.5rem;">
+            <div class="card-header bg-transparent border-0 pt-3 pb-0">
                 <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter</h6>
             </div>
             <div class="card-body">
@@ -59,64 +64,41 @@
     <div class="col-lg-9">
         @if (!Model.Items.Any())
         {
-            <div class="alert alert-info text-center py-5">
-                <i class="bi bi-search display-4 d-block mb-2"></i>
-                No products match your filters. <a asp-action="Index">Clear filters</a> and try again.
+            <div class="mv-empty card border-0 shadow-sm">
+                <div class="card-body py-5">
+                    <div class="mv-empty-icon mx-auto"><i class="bi bi-search"></i></div>
+                    <p class="mb-0 fw-semibold text-dark">No products match your filters.</p>
+                    <p class="small text-muted mb-3">Try widening your search or clearing filters.</p>
+                    <a asp-action="Index" class="btn btn-primary">Clear filters</a>
+                </div>
             </div>
         }
         else
         {
-            <div class="row g-3">
+            <div class="row g-3 g-lg-4">
                 @foreach (var p in Model.Items)
                 {
-                    var hasDiscount = p.MinVariantPrice.HasValue && p.MinVariantPrice < p.BasePrice;
-                    <div class="col-md-4 col-sm-6">
-                        <div class="card mv-card h-100 position-relative">
-                            @if (hasDiscount) { <span class="mv-badge-sale">SALE</span> }
-                            <a asp-action="Details" asp-route-slug="@p.Slug" class="text-decoration-none text-reset">
-                                <div class="mv-img-wrap">
-                                    @if (!string.IsNullOrEmpty(p.MainImageUrl))
-                                    { <img src="@p.MainImageUrl" class="card-img-top" style="height:200px;object-fit:cover" /> }
-                                    else
-                                    { <div class="card-img-top bg-body-secondary d-flex justify-content-center align-items-center" style="height:200px"><i class="bi bi-image display-4 text-muted"></i></div> }
-                                </div>
-                                <div class="card-body">
-                                    <div class="text-muted small text-uppercase">@p.CategoryName</div>
-                                    <h6 class="card-title mt-1 mb-1">@p.Name</h6>
-                                    <a asp-controller="Stores" asp-action="Index" asp-route-slug="@p.StoreSlug" class="mv-store-link" onclick="event.stopPropagation();"><i class="bi bi-shop me-1"></i>@p.StoreName</a>
-                                    <div class="mt-2 d-flex align-items-baseline">
-                                        <span class="mv-price">@((p.MinVariantPrice ?? p.BasePrice).ToString("0.00"))</span>
-                                        @if (hasDiscount) { <span class="mv-price-old">@p.BasePrice.ToString("0.00")</span> }
-                                    </div>
-                                    @if (p.ReviewCount > 0)
-                                    {
-                                        <div class="mt-1">
-                                            <span class="mv-rating"><i class="bi bi-star-fill"></i> @p.AverageRating.ToString("0.0")</span>
-                                            <small class="text-muted">(@p.ReviewCount)</small>
-                                        </div>
-                                    }
-                                </div>
-                            </a>
-                        </div>
+                    <div class="col-md-6 col-xl-4">
+                        <partial name="_ProductCard" model="p" />
                     </div>
                 }
             </div>
 
             @if (Model.TotalPages > 1)
             {
-                <nav class="mt-4">
-                    <ul class="pagination justify-content-center">
+                <nav class="mt-5" aria-label="Product pages">
+                    <ul class="pagination mv-pagination justify-content-center flex-wrap mb-0">
                         <li class="page-item @(Model.HasPrevious ? "" : "disabled")">
-                            <a class="page-link" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@search" asp-route-categoryId="@catId">Previous</a>
+                            <a class="page-link" asp-route-page="@(Model.PageNumber - 1)" asp-route-search="@search" asp-route-categoryId="@catId" asp-route-minPrice="@minPrice" asp-route-maxPrice="@maxPrice">Previous</a>
                         </li>
                         @for (int i = 1; i <= Model.TotalPages; i++)
                         {
                             <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                <a class="page-link" asp-route-page="@i" asp-route-search="@search" asp-route-categoryId="@catId">@i</a>
+                                <a class="page-link" asp-route-page="@i" asp-route-search="@search" asp-route-categoryId="@catId" asp-route-minPrice="@minPrice" asp-route-maxPrice="@maxPrice">@i</a>
                             </li>
                         }
                         <li class="page-item @(Model.HasNext ? "" : "disabled")">
-                            <a class="page-link" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@search" asp-route-categoryId="@catId">Next</a>
+                            <a class="page-link" asp-route-page="@(Model.PageNumber + 1)" asp-route-search="@search" asp-route-categoryId="@catId" asp-route-minPrice="@minPrice" asp-route-maxPrice="@maxPrice">Next</a>
                         </li>
                     </ul>
                 </nav>

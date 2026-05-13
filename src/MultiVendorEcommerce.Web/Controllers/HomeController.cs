@@ -47,7 +47,7 @@ public class HomeController : Controller
         var body = $"<p><strong>From:</strong> {vm.Name} &lt;{vm.Email}&gt;</p>" +
                    $"<p><strong>Subject:</strong> {vm.Subject}</p>" +
                    $"<hr/><p>{System.Net.WebUtility.HtmlEncode(vm.Message).Replace("\n", "<br/>")}</p>";
-        await _email.SendAsync("support@shop.com", $"[Contact form] {vm.Subject}", body);
+        await _email.SendAsync("ahmadbkye12@gmail.com", $"[Contact form] {vm.Subject}", body);
 
         TempData["Success"] = "Thanks! We received your message and will get back to you soon.";
         return RedirectToAction(nameof(Contact));

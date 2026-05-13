@@ -20,6 +20,14 @@ public class CartController : Controller
         return View(cart);
     }
 
+    // Catches the GET redirect that happens after login when returnUrl was /Cart/Add
+    [HttpGet]
+    public IActionResult Add()
+    {
+        TempData["Info"] = "You're now signed in — please add the item to your cart again.";
+        return RedirectToAction("Index", "Products");
+    }
+
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(Guid productVariantId, int quantity = 1)
     {

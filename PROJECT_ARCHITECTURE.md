@@ -1257,7 +1257,7 @@ Customers are unauthenticated visitors who register and shop. Most features requ
 #### 14. Contact Form
 **Use case:** A visitor sends a message to the platform support team.
 - Name, email, subject, message fields
-- On submit, sends an email to `support@shop.com` via `IEmailService`
+- On submit, sends an email to `ahmadbkye12@gmail.com` via `IEmailService`
 - Success confirmation shown after submission
 
 ---

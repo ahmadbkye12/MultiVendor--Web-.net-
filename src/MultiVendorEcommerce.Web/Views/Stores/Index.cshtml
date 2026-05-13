@@ -4,99 +4,122 @@
     var products = (Application.Common.Models.PaginatedList<Application.Products.Queries.GetPublicProducts.PublicProductCardDto>)ViewBag.Products;
 }
 
-<!-- Banner -->
-<div class="mv-storefront-banner mb-4">
-    @if (!string.IsNullOrEmpty(Model.BannerUrl))
-    {
-        <img src="@Model.BannerUrl" alt="@Model.Name" />
-    }
-    else
-    {
-        <div style="background: var(--mv-grad-1); height: 240px;"></div>
-    }
-    <div class="mv-storefront-overlay"></div>
-    <div class="position-absolute bottom-0 start-0 p-4 text-white">
-        <div class="d-flex align-items-end gap-3">
-            @if (!string.IsNullOrEmpty(Model.LogoUrl))
-            {
-                <img src="@Model.LogoUrl" class="rounded" style="width:80px;height:80px;object-fit:cover;border:3px solid #fff;box-shadow:var(--mv-shadow-md);" />
-            }
-            else
-            {
-                <div class="rounded bg-white d-flex justify-content-center align-items-center" style="width:80px;height:80px;border:3px solid #fff;"><i class="bi bi-shop fs-2 text-muted"></i></div>
-            }
-            <div>
-                <h1 class="mb-0" style="text-shadow:0 2px 8px rgba(0,0,0,.4);">@Model.Name</h1>
-                <small class="opacity-75">@Model.VendorBusiness · @Model.ProductCount product@(Model.ProductCount == 1 ? "" : "s")</small>
+<!-- Store Hero Banner -->
+<div class="mv-store-hero mb-4">
+    <div class="mv-store-hero__banner">
+        @if (!string.IsNullOrEmpty(Model.BannerUrl))
+        {
+            <img src="@Model.BannerUrl" alt="@Model.Name" />
+        }
+        else
+        {
+            <div class="mv-store-hero__banner-default"></div>
+        }
+        <div class="mv-store-hero__overlay"></div>
+    </div>
+    <div class="mv-store-hero__content">
+        <div class="d-flex align-items-end gap-4 flex-wrap">
+            <div class="mv-store-hero__logo-wrap">
+                @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                {
+                    <img src="@Model.LogoUrl" class="mv-store-hero__logo" alt="@Model.Name" />
+                }
+                else
+                {
+                    <div class="mv-store-hero__logo mv-store-hero__logo-placeholder">
+                        <i class="bi bi-shop fs-1"></i>
+                    </div>
+                }
+            </div>
+            <div class="flex-grow-1">
+                <div class="mv-store-hero__badge mb-2">
+                    <i class="bi bi-patch-check-fill me-1"></i>Verified Store
+                </div>
+                <h1 class="mv-store-hero__name">@Model.Name</h1>
+                <div class="d-flex align-items-center gap-3 flex-wrap mt-1">
+                    @if (!string.IsNullOrEmpty(Model.VendorBusiness))
+                    {
+                        <span class="mv-store-hero__meta"><i class="bi bi-building me-1"></i>@Model.VendorBusiness</span>
+                    }
+                    <span class="mv-store-hero__meta"><i class="bi bi-box-seam me-1"></i>@Model.ProductCount product@(Model.ProductCount == 1 ? "" : "s")</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Store info & contact -->
 @if (!string.IsNullOrEmpty(Model.Description) || !string.IsNullOrEmpty(Model.ContactEmail) || !string.IsNullOrEmpty(Model.ContactPhone))
 {
-    <div class="card mv-card mb-4">
-        <div class="card-body d-flex flex-wrap gap-3 justify-content-between align-items-start">
-            <div class="flex-grow-1">
-                @if (!string.IsNullOrEmpty(Model.Description))
-                { <p class="mb-0 text-muted">@Model.Description</p> }
-            </div>
-            <div class="text-muted small">
-                @if (!string.IsNullOrEmpty(Model.ContactEmail))
-                { <div><i class="bi bi-envelope me-1"></i>@Model.ContactEmail</div> }
-                @if (!string.IsNullOrEmpty(Model.ContactPhone))
-                { <div><i class="bi bi-telephone me-1"></i>@Model.ContactPhone</div> }
+    <div class="mv-store-info-card mb-4">
+        <div class="row g-3 align-items-center">
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="col-md-8">
+                    <p class="mb-0 text-muted" style="line-height:1.7;font-size:.92rem;">@Model.Description</p>
+                </div>
+            }
+            <div class="col-md-4 text-md-end">
+                <div class="d-flex flex-column gap-2 align-items-start align-items-md-end">
+                    @if (!string.IsNullOrEmpty(Model.ContactEmail))
+                    {
+                        <a href="mailto:@Model.ContactEmail" class="mv-store-contact">
+                            <i class="bi bi-envelope-fill me-2"></i>@Model.ContactEmail
+                        </a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ContactPhone))
+                    {
+                        <a href="tel:@Model.ContactPhone" class="mv-store-contact">
+                            <i class="bi bi-telephone-fill me-2"></i>@Model.ContactPhone
+                        </a>
+                    }
+                </div>
             </div>
         </div>
     </div>
 }
 
-<div class="mv-section-head">
-    <h4 class="mb-0"><i class="bi bi-bag me-2"></i>Products from @Model.Name</h4>
+<!-- Products section -->
+<div class="mv-section-header mb-4">
+    <div>
+        <h2 class="mv-section-header__title">Products from @Model.Name</h2>
+        <p class="mv-section-header__sub">@products.TotalCount product@(products.TotalCount == 1 ? "" : "s") available</p>
+    </div>
+    <a asp-controller="Products" asp-action="Index" class="mv-section-header__link">
+        All products <i class="bi bi-arrow-right ms-1"></i>
+    </a>
 </div>
-<hr class="mt-2 mb-3" />
 
 @if (!products.Items.Any())
 {
-    <div class="alert alert-info text-center py-5">
-        <i class="bi bi-box display-4 d-block mb-2"></i>
-        This store hasn't published any products yet.
+    <div class="mv-empty-state text-center py-5">
+        <div class="mv-empty-state__icon mx-auto mb-3"><i class="bi bi-box2"></i></div>
+        <h5 class="fw-bold">No products yet</h5>
+        <p class="text-muted small">This store hasn't published any products yet. Check back soon!</p>
     </div>
 }
 else
 {
-    <div class="row g-3">
+    <div class="row g-3 g-lg-4">
         @foreach (var p in products.Items)
         {
-            var hasDiscount = p.MinVariantPrice.HasValue && p.MinVariantPrice < p.BasePrice;
-            <div class="col-md-3 col-sm-6">
-                <div class="card mv-card h-100 position-relative">
-                    @if (hasDiscount) { <span class="mv-badge-sale">SALE</span> }
-                    <a asp-controller="Products" asp-action="Details" asp-route-slug="@p.Slug" class="text-decoration-none text-reset">
-                        <div class="mv-img-wrap">
-                            @if (!string.IsNullOrEmpty(p.MainImageUrl))
-                            { <img src="@p.MainImageUrl" class="card-img-top" style="height:180px;object-fit:cover" /> }
-                            else
-                            { <div class="card-img-top bg-body-secondary d-flex justify-content-center align-items-center" style="height:180px"><i class="bi bi-image display-4 text-muted"></i></div> }
-                        </div>
-                        <div class="card-body">
-                            <div class="text-muted small text-uppercase">@p.CategoryName</div>
-                            <h6 class="card-title mt-1 mb-1">@p.Name</h6>
-                            <div class="d-flex align-items-baseline">
-                                <span class="mv-price">@((p.MinVariantPrice ?? p.BasePrice).ToString("0.00"))</span>
-                                @if (hasDiscount) { <span class="mv-price-old">@p.BasePrice.ToString("0.00")</span> }
-                            </div>
-                            @if (p.ReviewCount > 0)
-                            {
-                                <div class="mt-1">
-                                    <span class="mv-rating"><i class="bi bi-star-fill"></i> @p.AverageRating.ToString("0.0")</span>
-                                    <small class="text-muted">(@p.ReviewCount)</small>
-                                </div>
-                            }
-                        </div>
-                    </a>
-                </div>
+            <div class="col-md-6 col-xl-4 mv-animate-rise">
+                <partial name="_ProductCard" model="p" />
             </div>
         }
     </div>
+
+    @if (products.TotalPages > 1)
+    {
+        <nav class="mt-5">
+            <ul class="pagination mv-pagination justify-content-center">
+                @for (int page = 1; page <= products.TotalPages; page++)
+                {
+                    <li class="page-item @(page == products.PageNumber ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-slug="@Model.Slug" asp-route-page="@(page)">@(page)</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
 }
